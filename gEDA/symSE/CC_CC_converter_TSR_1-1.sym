@@ -1,0 +1,49 @@
+v 20100214 2
+B 300 400 1200 500 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
+T 300 1250 5 10 0 0 0 0 1
+device=CC-CC converter
+T 1550 1000 8 10 1 1 0 0 1
+refdes=U?
+T 300 1650 5 10 0 0 0 0 1
+numslots=0
+T 300 950 9 8 1 0 0 0 1
+CC/CC converter
+P 900 400 900 100 1 0 1
+{
+T 850 305 5 8 1 1 90 6 1
+pinnumber=2
+T 1050 300 5 8 0 1 90 6 1
+pinseq=2
+T 900 455 5 8 1 1 90 0 1
+pinlabel=GND
+T 900 450 5 8 0 1 90 2 1
+pintype=pwr
+}
+P 1500 600 1800 600 1 0 1
+{
+T 1600 650 5 8 1 1 0 0 1
+pinnumber=3
+T 1600 450 5 8 0 1 180 8 1
+pinseq=3
+T 1450 600 5 8 1 1 0 6 1
+pinlabel=Vout
+T 1450 500 5 8 0 1 180 2 1
+pintype=pwr
+}
+P 300 600 0 600 1 0 1
+{
+T 200 650 5 8 1 1 0 6 1
+pinnumber=1
+T 200 450 5 8 0 1 180 2 1
+pinseq=1
+T 350 600 5 8 1 1 0 0 1
+pinlabel=Vin
+T 350 500 5 8 0 1 180 8 1
+pintype=pwr
+}
+T 1550 800 8 10 1 1 0 0 1
+value=TSR 1-2450
+T 295 1845 8 10 0 0 0 0 1
+order-code=F-1696320 
+T 300 1450 5 10 0 0 0 0 1
+footprint=TSR_1_SE
