@@ -20,8 +20,9 @@
 
   ******************************************************************************
   Todo :
-  This code needs heavy cleanup :
-     - Code must be restructured.
+     - merge in the code for current sensor to prevent motor overheating
+     - replace the PID library by an up to date version
+     - This code needs heavy cleanup, the code must be restructured.
      - The algorithm combining gyro and compass to calculate fast heading data
        is a complete humbug. It was written under pressure, the night before 
        the first sea-trial. I'm still surprised that it works good enough 
