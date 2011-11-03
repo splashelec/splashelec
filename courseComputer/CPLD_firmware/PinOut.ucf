@@ -1,0 +1,38 @@
+// UCF file for CCSCHardwareProtection in XC9572XL-VQ44
+
+//NET HbridgeMode<0> LOC=P40;
+//NET HbridgeMode<1> LOC=P41;
+//NET HbridgeMode<2> LOC=P42;
+
+NET Hbridge_pwm    LOC=P2;
+
+//NET switch<2>      LOC=P31;
+//NET switch<3>      LOC=P30;
+//NET switch<4>      LOC=P3;
+//NET switch<5>      LOC=P5;
+
+//NET reserve<1>     LOC=P6;
+//NET reserve<2>     LOC=P7;
+//NET reserve<3>     LOC=P8;
+//NET reserve<4>     LOC=P12;
+//NET reserve<5>     LOC=P29;
+//NET reserve<6>     LOC=P28;
+//NET reserve<7>     LOC=P27;
+//NET reserve<8>     LOC=P23;
+
+//NET noHardwareError       LOC=P13;
+//NET noOvercurrent         LOC=P14;
+//NET noNegativeOvercurrent LOC=P16;
+//NET heatsinkTempOk        LOC=P18;  
+
+NET driveHighLeft  LOC=P22;
+NET driveLowLeft   LOC=P21;
+NET driveHighRight LOC=P20;
+NET driveLowRight  LOC=P19;
+
+NET GCK1 LOC=P43;
+NET GTS1 LOC=P36;
+//NET GSR1 LOC=P33;
+
+NET "GCK1" BUFG=CLK; 
+NET "GTS1" BUFG=OE;

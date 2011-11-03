@@ -1,0 +1,4 @@
+The files in this directory were used to synthesize 
+a configuration file for the used Xilinx CPLD.
+The free version of the Xilinx ISE tools was used.
+(You still need a programmer...)
