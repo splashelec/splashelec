@@ -74,8 +74,8 @@ SOFTWARE.
 // Tri-state for Xilinx CPLD
 #define GTS1 2
 
-// analog in 5
-#define gyroPin 5
+// analog in 3
+#define gyroPin 3
 
 // set up a new serial port for NMEA compass
 NewSoftSerial mySerial(rxPin, txPin, true);
@@ -133,10 +133,10 @@ int switch1Pin = 11; // mode selector switch
 int joystickPin = 7; // analog 7
 int rudderPin   = 6; // anlalog 6
 
-int joystickMin = 535;    // When put to the right, the joystick reaches 1023
+int joystickMin = 117;    // When put to the right, the joystick reaches 1023
                           // a bit before reaching the full right position :
                           // put plus 20 in order treat équally on the left side
-int joystickMax = 1023;
+int joystickMax = 883;
 
 int joystickSpread = joystickMax - joystickMin;
 double joystickMiddle; // the value the joystick gives when in its stable middle position
@@ -335,9 +335,9 @@ void loop() {
     
     // relativeJoystick += joystickAutoTrim;
     // weighted add of autotrim: full trim in the middle, going to zero when close to the ram limits
-    if (relativeJoystick >= 0.5) relativeJoystick += (1 - relativeJoystick) * 2 * joystickAutoTrim;
+    if (relativeJoystick >= 0.5) relativeJoystick += (1 - relativeJoystick) * 2.0 * joystickAutoTrim;
     else
-      relativeJoystick += relativeJoystick * 2 * joystickAutoTrim;
+      relativeJoystick += relativeJoystick * 2.0 * joystickAutoTrim;
 
     if (relativeJoystick < 0.0) relativeJoystick = 0.0;
     else if (relativeJoystick > 1.0) relativeJoystick = 1.0;
