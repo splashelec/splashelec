@@ -13,6 +13,7 @@
      - waterproof, application specific keyboard connected to
        hardware UART
      - mode selection lever switch (standby - joystick)
+     - ACS714-30 current sensor connected to the motor output
 
   The software works also with neither compass, nor keyboard
   connected. In this case, the switch mounted to the course computer selects 
@@ -20,18 +21,18 @@
 
   ******************************************************************************
   Todo :
-     - merge in the code for current sensor to prevent motor overheating
      - replace the PID library by an up to date version
      - This code needs heavy cleanup, the code must be restructured.
      - The algorithm combining gyro and compass to calculate fast heading data
        is a complete humbug. It was written under pressure, the night before 
        the first sea-trial. I'm still surprised that it works good enough 
        for auto steering. Somebody should be able to replace this part by a real 
-       filter (Kalman?).
+       filter (Kalman?). Or, for a simpler solution, use a compas (or complete
+       AHRS integrated gyro sensor that does these calculations externally. 
   ******************************************************************************
 
 
-  V1.2 2011-09-29
+  V1.3 2013-04-06
 
   by Bernt Weber (bernt.weber@splashelec.com)
   
@@ -102,7 +103,7 @@ double SpeedSetting, Speed, Output;
 double OutputBias = 49.0; // motor stands still @ 50%
 
 //Specify the links and initial tuning parameters
-PID myPID(&Input, &Output, &Setpoint, &OutputBias, 2, 0,0);
+PID myPID(&Input, &Output, &Setpoint, &OutputBias, 2, 0, 0);
 //PID myPID(&Input, &SpeedSetting, &Setpoint, &OutputBias, -3, 0,0);
 
 byte   keyboardAvailableCountdown = 0; // If zero keyboard was not heard for a while.
@@ -131,11 +132,16 @@ PID compasPID(&ErrorPlusStraight, &RudderAngle, &Straight, &RudderBias, 5, 0, 0.
 
 int switch1Pin = 11; // mode selector switch
 int joystickPin = 7; // analog 7
-int rudderPin   = 6; // anlalog 6
+int rudderPin   = 6; // analog 6
 
-int joystickMin = 117;    // When put to the right, the joystick reaches 1023
-                          // a bit before reaching the full right position :
-                          // put plus 20 in order treat équally on the left side
+int   currentSense = 2;       // analog 2
+float motorResistance = 1.1;  // in Ohms
+float dissipatedEnergy = 0.0; // accumulation disspated energy
+int   energyTimer = 0;        // timer for energy/power calculations
+float powerLimit = 16.0;      // [W] the average output power will be limited to this amount
+int   powerLimitWait = 0;     // Time to wait before using the motor again to limit power dissipation
+
+int joystickMin = 117;
 int joystickMax = 883;
 
 int joystickSpread = joystickMax - joystickMin;
@@ -144,8 +150,49 @@ double joystickAutoTrim; // correction calculated from past joystick position
 
 int rudderMin = 317;
 int rudderMax = 655;
-//int rudderMax = 668-20; // - 20 to center the rudder sensor center postion 
 int rudderSpread = rudderMax - rudderMin;
+
+boolean limitPower()
+// true if powerLimit has been exeeded
+{
+  if ((energyTimer >= 10) && (powerLimitWait == 0)){
+    energyTimer = 0;
+    dissipatedEnergy = 0.0;
+  }
+  energyTimer++;
+  float current = abs((2.5 - (analogRead(currentSense)/1024.0 * 5.0)) / 0.066); // ACS714-30: 0.066 V/A  
+  dissipatedEnergy += current * current * motorResistance * 0.1; // power * time
+      
+  if ((powerLimitWait == 0) && (dissipatedEnergy > powerLimit))
+  {
+    powerLimitWait = (10 - energyTimer) + ((dissipatedEnergy - powerLimit)/powerLimit) * 10 + 2; // wait 0.2 s longer than necessary   
+    Serial.print(powerLimitWait); Serial.print ("* 0.1 s waiting after "); Serial.print(energyTimer); Serial.println(" * 0.1s of counting.");
+  }
+  
+  if (energyTimer == 10)
+  {
+    Serial.print("***** energy : "); Serial.println(dissipatedEnergy);
+  }
+  
+  if (powerLimitWait > 0) {
+    powerLimitWait --;
+    return true;
+  } else
+    return false;
+    
+}// limit power
+
+double getRelativeJoystick()
+{
+    //Serial.print("raw Joystick: "); Serial.println(analogRead(joystickPin));
+    double relativeJoystick = ((analogRead(joystickPin)-joystickMin) * 1.0) / (joystickSpread * 1.0); 
+    if (relativeJoystick < 0.0) relativeJoystick = 0.0;
+    else if (relativeJoystick > 1.0) relativeJoystick = 1.0;
+
+    // Serial.print("relative Joystick: "); Serial.println(relativeJoystick * 100, 0);
+    return relativeJoystick;
+}
+
 
 void setup()  {
   
@@ -166,12 +213,7 @@ void setup()  {
   pinMode(9, OUTPUT);
   pinMode(10, OUTPUT);
   
-  // for debugging
-  // no!! this is the gyry input!!!
-  // pinMode(19, OUTPUT);
-
-//Timer/Counter2
-
+  //Timer/Counter2
   TCCR2A = _BV(COM2A0) | _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
   TCCR2B = _BV(WGM22) | _BV(CS21); // toggle OC2A on OCR2A match; prescaler: /8
   OCR2A = 99;
@@ -210,18 +252,16 @@ void setup()  {
   digitalWrite(0, GTS1);
   pinMode(GTS1, OUTPUT); 
  
-  double relativeJoystick = ((analogRead(joystickPin)-joystickMin) * 1.0) / (joystickSpread * 1.0); 
-  if (relativeJoystick < 0.0) relativeJoystick = 0.0;
-  else if (relativeJoystick > 1.0) relativeJoystick = 1.0;
+  double relativeJoystick = getRelativeJoystick();
    
-  // set mid point of joystick, at power on
+  // set mid point of joystick, at power or auto on
   joystickMiddle = relativeJoystick; 
   joystickAutoTrim = 0.0;
 
   //Serial.begin(9600); 
   
-  Input = ((analogRead(6) - 350) >> 2) + 10;
-  Setpoint = (analogRead(7) - 570) >> 2;
+  Input = ((analogRead(6) - 512) >> 2);
+  Setpoint = (analogRead(7) - 512) >> 2;
   myPID.SetSampleTime(95); // 100 ms; 10 x per second (slightly shorter so that it will
                            // allways be executed. Timing comes anyway from the fact
                            // that we wait for the compass wich sends data every 100 ms.
@@ -239,6 +279,8 @@ void setup()  {
 
 void loop() {
   int i;
+  double relativeJoystick;
+  double relativeRudder;
   char someChar = 'X';
   
   // listen for compass serial coming in:
@@ -309,10 +351,7 @@ void loop() {
     }; // someChar == '\n'
   
     // PID ======================================
-    double relativeJoystick = ((analogRead(joystickPin)-joystickMin) * 1.0) / (joystickSpread * 1.0); 
-    if (relativeJoystick < 0.0) relativeJoystick = 0.0;
-    else if (relativeJoystick > 1.0) relativeJoystick = 1.0;
-    
+    relativeJoystick = getRelativeJoystick(); 
     // Serial.print(" Joystick: "); Serial.print(relativeJoystick * 100, 0);
   
     // accumulate joystickAutotrim when not in a maneuver 
@@ -346,8 +385,7 @@ void loop() {
     else if (relativeJoystick > 1.0) relativeJoystick = 1.0;
   
     //Serial.print("raw Rudder: "); Serial.println(analogRead(rudderPin));
-  
-    double relativeRudder = ((analogRead(rudderPin)-rudderMin) * 1.0) / (rudderSpread * 1.0); 
+    relativeRudder = ((analogRead(rudderPin)-rudderMin) * 1.0) / (rudderSpread * 1.0); 
   
     // reverse rudder
     relativeRudder = (relativeRudder * -1.0) + 1.0;
@@ -435,8 +473,14 @@ void loop() {
     if ((pwm >= 46) and (pwm <= 52)) // deadband
        pwm = 49;
     if (pwm < 0) pwm = 0;
-    if (pwm > 99) pwm = 99;
-    OCR1B = pwm;
+    if (pwm > 98) pwm = 98;
+    
+    //Serial.println(pwm);
+    if (! limitPower())
+       OCR1B = pwm;
+    else
+       OCR1B = 49; // motor current has to go zero
+    
       
     
     // END PID ======================================
