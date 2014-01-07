@@ -166,12 +166,12 @@ boolean limitPower()
   if ((powerLimitWait == 0) && (dissipatedEnergy > powerLimit))
   {
     powerLimitWait = (10 - energyTimer) + ((dissipatedEnergy - powerLimit)/powerLimit) * 10 + 2; // wait 0.2 s longer than necessary   
-    Serial.print(powerLimitWait); Serial.print ("* 0.1 s waiting after "); Serial.print(energyTimer); Serial.println(" * 0.1s of counting.");
+    // Serial.print(powerLimitWait); Serial.print ("* 0.1 s waiting after "); Serial.print(energyTimer); Serial.println(" * 0.1s of counting.");
   }
   
   if (energyTimer == 10)
   {
-    Serial.print("***** energy : "); Serial.println(dissipatedEnergy);
+    // Serial.print("***** energy : "); Serial.println(dissipatedEnergy);
   }
   
   if (powerLimitWait > 0) {
