@@ -1,6 +1,9 @@
 #include "Can.h"
 
-CAN::CAN(){
+// Instance of CANclass
+CANclass CAN;
+
+CANclass::CANclass(){
 
 }
 
@@ -37,19 +40,19 @@ CAN::CAN(){
 #ifdef USE_SOFTWARE_SPI
 	static uint8_t usi_interface_spi_temp;
 
-	void CAN::spi_start(uint8_t data) {
+	void CANclass::spi_start(uint8_t data) {
 		usi_interface_spi_temp = spi_putc(data);
 	}
 
-	uint8_t CAN::spi_wait(void) {
+	uint8_t CANclass::spi_wait(void) {
 		return usi_interface_spi_temp;
 	}
 #else
-	void CAN::spi_start(uint8_t data) {
+	void CANclass::spi_start(uint8_t data) {
 		SPDR = data;
 	}
 
-	uint8_t CAN::spi_wait(void) {
+	uint8_t CANclass::spi_wait(void) {
 		// Wait until the previous values are ​​written
 		while(!(SPSR & (1<<SPIF)))
 			;
@@ -58,7 +61,7 @@ CAN::CAN(){
 	}
 #endif
 // ----------------------------------------------------------------------------
-void CAN::mcp2515_spi_init(void)
+void CANclass::mcp2515_spi_init(void)
 {
 	#ifndef USE_SOFTWARE_SPI
 		//Activate SPI Master Interfaces
@@ -68,7 +71,7 @@ void CAN::mcp2515_spi_init(void)
 }
 
 // ----------------------------------------------------------------------------
-uint8_t CAN::spi_putc(uint8_t data)
+uint8_t CANclass::spi_putc(uint8_t data)
 {
 	
 	// put byte in send-buffer
@@ -87,7 +90,7 @@ uint8_t CAN::spi_putc(uint8_t data)
 /*******************************BEG mcp2515_write_id******************************/
 // ----------------------------------------------------------------------------
 #if SUPPORT_EXTENDED_CANID
-	void CAN::mcp2515_write_id(const uint32_t *id, uint8_t extended)
+	void CANclass::mcp2515_write_id(const uint32_t *id, uint8_t extended)
 	{
 		uint8_t tmp;
 
@@ -120,7 +123,7 @@ uint8_t CAN::spi_putc(uint8_t data)
 		}
 	}
 #else
-	void CAN::mcp2515_write_id(const uint16_t *id)
+	void CANclass::mcp2515_write_id(const uint16_t *id)
 	{
 		uint8_t tmp;
 
@@ -138,7 +141,7 @@ uint8_t CAN::spi_putc(uint8_t data)
 /****************************mcp2515_static_filter function to set a filter****************************/
 // ----------------------------------------------------------------------------
 // Filter setting
-void CAN::mcp2515_static_filter(const prog_uint8_t *filter)
+void CANclass::mcp2515_static_filter(const prog_uint8_t *filter)
 {
 	// Switch into configuration mode because filters can be change only in this mode 
 	mcp2515_bit_modify(CANCTRL, 0xe0, (1<<REQOP2));
@@ -172,7 +175,7 @@ void CAN::mcp2515_static_filter(const prog_uint8_t *filter)
 
 /********************************mcp2515_sleep and wakeup function********************************/
 // ----------------------------------------------------------------------------
-void CAN::mcp2515_sleep(void)
+void CANclass::mcp2515_sleep(void)
 {
 	// put also the 2551 in standby mode
 	// for this, connect RX1BF to the RS pin of the 2551
@@ -186,7 +189,7 @@ void CAN::mcp2515_sleep(void)
 }
 
 // ----------------------------------------------------------------------------
-void CAN::mcp2515_wakeup(void)
+void CANclass::mcp2515_wakeup(void)
 {
 	// reset int enable and cancel the interrupt flag
 	mcp2515_bit_modify(CANINTE, (1<<WAKIE), 0);
@@ -204,7 +207,7 @@ void CAN::mcp2515_wakeup(void)
 
 /*******************************mcp2515_set_mode function to set CAN mode******************************/
 // ----------------------------------------------------------------------------
-void CAN::mcp2515_set_mode(can_mode_t mode)
+void CANclass::mcp2515_set_mode(can_mode_t mode)
 {
 	uint8_t reg = 0;
 
@@ -231,7 +234,7 @@ void CAN::mcp2515_set_mode(can_mode_t mode)
 /****************************mcp2515_set_dyn_filter function to set a dynamic filter***************************/
 // ----------------------------------------------------------------------------
 // set a filter
-bool CAN::mcp2515_set_filter(uint8_t number, const can_filter_t *filter)
+bool CANclass::mcp2515_set_filter(uint8_t number, const can_filter_t *filter)
 {
 	uint8_t mask_address = 0;
 	uint8_t mode = mcp2515_read_register(CANSTAT);
@@ -334,7 +337,7 @@ bool CAN::mcp2515_set_filter(uint8_t number, const can_filter_t *filter)
 
 
 /****************************mcp2515_send_message function to send a CAN msg***************************/
-uint8_t CAN::mcp2515_send_message(const can_t *msg)
+uint8_t CANclass::mcp2515_send_message(const can_t *msg)
 {
 	// Read status of the MCP2515
 	uint8_t status = mcp2515_read_status(SPI_READ_STATUS);
@@ -411,7 +414,7 @@ uint8_t CAN::mcp2515_send_message(const can_t *msg)
 
 
 /****************************BEG mcp2515_regdump***************************/
-void CAN::mcp2515_regdump(void)
+void CANclass::mcp2515_regdump(void)
 {
 	uint8_t mode = mcp2515_read_register( CANSTAT );
 
@@ -438,7 +441,7 @@ void CAN::mcp2515_regdump(void)
 
 /****************************mcp2515_read_id function to read an ID***************************/
 #if	SUPPORT_EXTENDED_CANID
-uint8_t CAN::mcp2515_read_id(uint32_t *id)
+uint8_t CANclass::mcp2515_read_id(uint32_t *id)
 {
 	uint8_t first;
 	uint8_t tmp;
@@ -481,7 +484,7 @@ uint8_t CAN::mcp2515_read_id(uint32_t *id)
 
 #else
 
-uint8_t CAN::mcp2515_read_id(uint16_t *id)
+uint8_t CANclass::mcp2515_read_id(uint16_t *id)
 {
 	uint8_t first;
 	uint8_t tmp;
@@ -519,7 +522,7 @@ uint8_t CAN::mcp2515_read_id(uint16_t *id)
 
 
 /****************************mcp2515_get_message function to get an incoming msg***************************/
-uint8_t CAN::mcp2515_get_message(can_t *msg)
+uint8_t CANclass::mcp2515_get_message(can_t *msg)
 {
 	uint8_t addr;
 
@@ -614,7 +617,7 @@ uint8_t CAN::mcp2515_get_message(can_t *msg)
 
 
 /****************************mcp2515_get_dyn_filter function to get a dynamic filter***************************/
-uint8_t CAN::mcp2515_get_filter(uint8_t number, can_filter_t *filter)
+uint8_t CANclass::mcp2515_get_filter(uint8_t number, can_filter_t *filter)
 {
 	uint8_t mask_address;
 	uint8_t filter_address;
@@ -694,7 +697,7 @@ uint8_t CAN::mcp2515_get_filter(uint8_t number, can_filter_t *filter)
 /****************************END mcp2515_get_dyn_filter***************************/
 
 /****************************mcp2515_error_register**************************/
-can_error_register_t CAN::mcp2515_read_error_register(void)
+can_error_register_t CANclass::mcp2515_read_error_register(void)
 {
 	can_error_register_t error;
 
@@ -710,7 +713,7 @@ can_error_register_t CAN::mcp2515_read_error_register(void)
 /****************************mcp2515_buffer**************************/
 // ----------------------------------------------------------------------------
 // check if there are any new messages waiting
-bool CAN::mcp2515_check_message(void)
+bool CANclass::mcp2515_check_message(void)
 {
 	#if defined(MCP2515_INT)
 		return ((!IS_SET(MCP2515_INT)) ? true : false);
@@ -727,7 +730,7 @@ bool CAN::mcp2515_check_message(void)
 }
 // ----------------------------------------------------------------------------
 // check if there is a free buffer to send messages
-bool CAN::mcp2515_check_free_buffer(void)
+bool CANclass::mcp2515_check_free_buffer(void)
 {
 	uint8_t status = mcp2515_read_status(SPI_READ_STATUS);
 
@@ -759,7 +762,7 @@ bool CAN::mcp2515_check_free_buffer(void)
 #endif
 
 // -------------------------------------------------------------------------
-void CAN::mcp2515_write_register( uint8_t adress, uint8_t data )
+void CANclass::mcp2515_write_register( uint8_t adress, uint8_t data )
 {
 	RESET(MCP2515_CS);
 
@@ -771,7 +774,7 @@ void CAN::mcp2515_write_register( uint8_t adress, uint8_t data )
 }
 
 // -------------------------------------------------------------------------
-uint8_t CAN::mcp2515_read_register(uint8_t adress)
+uint8_t CANclass::mcp2515_read_register(uint8_t adress)
 {
 	uint8_t data;
 
@@ -788,7 +791,7 @@ uint8_t CAN::mcp2515_read_register(uint8_t adress)
 }
 
 // -------------------------------------------------------------------------
-void CAN::mcp2515_bit_modify(uint8_t adress, uint8_t mask, uint8_t data)
+void CANclass::mcp2515_bit_modify(uint8_t adress, uint8_t mask, uint8_t data)
 {
 	RESET(MCP2515_CS);
 
@@ -801,7 +804,7 @@ void CAN::mcp2515_bit_modify(uint8_t adress, uint8_t mask, uint8_t data)
 }
 
 // ----------------------------------------------------------------------------
-uint8_t CAN::mcp2515_read_status(uint8_t type)
+uint8_t CANclass::mcp2515_read_status(uint8_t type)
 {
 	uint8_t data;
 
@@ -862,7 +865,7 @@ const prog_uint8_t PROGMEM _mcp2515_cnf[8][3] = {
 };
 
 // -------------------------------------------------------------------------
-bool CAN::mcp2515_init(uint8_t bitrate)
+bool CANclass::mcp2515_init(uint8_t bitrate)
 {
 	if (bitrate >= 8)
 		return false;
@@ -963,7 +966,7 @@ bool CAN::mcp2515_init(uint8_t bitrate)
 #if CAN_RX_BUFFER_SIZE > 0 || CAN_TX_BUFFER_SIZE > 0
 
 	// -----------------------------------------------------------------------------
-	void CAN::can_buffer_init(can_buffer_t *buf, uint8_t size, can_t *list)
+	void CANclass::can_buffer_init(can_buffer_t *buf, uint8_t size, can_t *list)
 	{
 		ENTER_CRITICAL_SECTION;
 		buf->size = size;
@@ -976,7 +979,7 @@ bool CAN::mcp2515_init(uint8_t bitrate)
 	}
 
 	// -----------------------------------------------------------------------------
-	bool CAN::can_buffer_empty(can_buffer_t *buf)
+	bool CANclass::can_buffer_empty(can_buffer_t *buf)
 	{
 		uint8_t used;
 	
@@ -991,7 +994,7 @@ bool CAN::mcp2515_init(uint8_t bitrate)
 	}
 
 	// -----------------------------------------------------------------------------
-	bool CAN::can_buffer_full(can_buffer_t *buf)
+	bool CANclass::can_buffer_full(can_buffer_t *buf)
 	{
 		uint8_t used;
 		uint8_t size;
@@ -1008,7 +1011,7 @@ bool CAN::mcp2515_init(uint8_t bitrate)
 	}
 
 	// -----------------------------------------------------------------------------
-	can_t CAN::*can_buffer_get_enqueue_ptr(can_buffer_t *buf)
+	can_t CANclass::*can_buffer_get_enqueue_ptr(can_buffer_t *buf)
 	{
 		if (can_buffer_full( buf ))
 			return NULL;
@@ -1017,7 +1020,7 @@ bool CAN::mcp2515_init(uint8_t bitrate)
 	}
 
 	// -----------------------------------------------------------------------------
-	void CAN::can_buffer_enqueue(can_buffer_t *buf)
+	void CANclass::can_buffer_enqueue(can_buffer_t *buf)
 	{
 		ENTER_CRITICAL_SECTION;
 		buf->used ++;
@@ -1027,7 +1030,7 @@ bool CAN::mcp2515_init(uint8_t bitrate)
 	}
 
 	// -----------------------------------------------------------------------------
-	can_t CAN::*can_buffer_get_dequeue_ptr(can_buffer_t *buf)
+	can_t CANclass::*can_buffer_get_dequeue_ptr(can_buffer_t *buf)
 	{
 		if (can_buffer_empty( buf ))
 			return NULL;
@@ -1036,7 +1039,7 @@ bool CAN::mcp2515_init(uint8_t bitrate)
 	}
 
 	// -----------------------------------------------------------------------------
-	void CAN::can_buffer_dequeue(can_buffer_t *buf)
+	void CANclass::can_buffer_dequeue(can_buffer_t *buf)
 	{
 		ENTER_CRITICAL_SECTION;
 		buf->used --;
@@ -1049,7 +1052,7 @@ bool CAN::mcp2515_init(uint8_t bitrate)
 /****************************END can_buffer**************************/
 
 /****************************inline header functions**************************/
-uint8_t CAN::read_and_replace_atomar(volatile uint8_t *data, uint8_t new_data)
+uint8_t CANclass::read_and_replace_atomar(volatile uint8_t *data, uint8_t new_data)
 {
 	uint8_t old_data;
 	
@@ -1064,7 +1067,7 @@ uint8_t CAN::read_and_replace_atomar(volatile uint8_t *data, uint8_t new_data)
 	return old_data;
 }
 
-uint8_t CAN::swap (uint8_t x)
+uint8_t CANclass::swap (uint8_t x)
 {
 	if (__builtin_constant_p(x))
 		x = (x << 4) | (x >> 4);
@@ -1074,7 +1077,7 @@ uint8_t CAN::swap (uint8_t x)
 	return x;
 }
 
-uint8_t CAN::bit_count8(uint8_t n)
+uint8_t CANclass::bit_count8(uint8_t n)
 {
 	n = ((n >> 1) & 0x55) + (n & 0x55);
 	n = ((n >> 2) & 0x33) + (n & 0x33);
@@ -1084,7 +1087,7 @@ uint8_t CAN::bit_count8(uint8_t n)
 }
 
 
-uint8_t CAN::bit_count32(uint32_t n)
+uint8_t CANclass::bit_count32(uint32_t n)
 {
 	n = (n & MASK_01010101) + ((n >> 1) & MASK_01010101);
 	n = (n & MASK_00110011) + ((n >> 2) & MASK_00110011);
@@ -1094,14 +1097,14 @@ uint8_t CAN::bit_count32(uint32_t n)
 }
 
 //Switch CAN mode [LISTEN_ONLY_MODE, LOOPBACK_MODE, NORMAL_MODE, SLEEP_MODE]
-void CAN::mcp2515_change_operation_mode(uint8_t mode)
+void CANclass::mcp2515_change_operation_mode(uint8_t mode)
 {
 	mcp2515_bit_modify(CANCTRL, 0xe0, mode);
 	while ((mcp2515_read_register(CANSTAT) & 0xe0) != (mode & 0xe0))
 		;
 }
 
-void CAN::resetFiltersAndMasks(void) {
+void CANclass::resetFiltersAndMasks(void) {
 	//disable first buffer
 	setMaskOrFilter(0x20,   0b00000000, 0b00000000, 0b00000000, 0b00000000);
 	setMaskOrFilter(0x00, 0b00000000, 0b00000000, 0b00000000, 0b00000000);
@@ -1115,7 +1118,7 @@ void CAN::resetFiltersAndMasks(void) {
 	setMaskOrFilter(0x18, 0b00000000, 0b00000000, 0b00000000, 0b00000000); 
 }
 
-void CAN::setMaskOrFilter(uint8_t mask, uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3) {
+void CANclass::setMaskOrFilter(uint8_t mask, uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3) {
 	// change to configuration mode
 	mcp2515_bit_modify(CANCTRL, 0xe0, (1<<REQOP2));
 	while ((mcp2515_read_register(CANSTAT) & 0xe0) != (1<<REQOP2))
@@ -1128,17 +1131,17 @@ void CAN::setMaskOrFilter(uint8_t mask, uint8_t b0, uint8_t b1, uint8_t b2, uint
 }
 
 //Activate Interrupt when receive a message on RX0 or RX1
-void CAN::activateInterrupt(void){
+void CANclass::activateInterrupt(void){
 	mcp2515_write_register(CANINTE, 0x03);
 }
 
-void CAN::clearFlags(void){
+void CANclass::clearFlags(void){
 	mcp2515_write_register(CANINTF, 0x00);
 }
 
 
 /*************************USB Functions for bootloader****************************/
-uint8_t CAN::char_to_byte(char *s)
+uint8_t CANclass::char_to_byte(char *s)
 {
 	uint8_t t = *s;
 	
@@ -1152,13 +1155,13 @@ uint8_t CAN::char_to_byte(char *s)
 	return t;
 }
 
-uint8_t CAN::hex_to_byte(char *s)
+uint8_t CANclass::hex_to_byte(char *s)
 {
 	return (char_to_byte(s) << 4) | char_to_byte(s + 1);
 }
 
 // ----------------------------------------------------------------------------
-bool CAN::usbcan_decode_message(char *str, uint8_t length)
+bool CANclass::usbcan_decode_message(char *str, uint8_t length)
 {
 	can_t msg;
 	uint8_t dlc_pos;
@@ -1240,7 +1243,7 @@ bool CAN::usbcan_decode_message(char *str, uint8_t length)
 }
 
 // ----------------------------------------------------------------------------
-char CAN::usbcan_decode_command(char *str, uint8_t length)
+char CANclass::usbcan_decode_command(char *str, uint8_t length)
 {
 	uint8_t temp;
 	uint8_t i;
@@ -1267,7 +1270,7 @@ error:
 //***************Tools for debugging****************//
 //This function allows the transmission of text message into a CAN message. The string is automatically cut to fit into a frame.
 //For better results, use short messages (<=8 characters) to use only one frame.
-void CAN::printString2Can(char data[]){
+void CANclass::printString2Can(char data[]){
   can_t msg;
   int compt=0;
   msg.id =0xFF;

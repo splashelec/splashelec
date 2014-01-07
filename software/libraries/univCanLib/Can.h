@@ -436,8 +436,8 @@
 	#define	P_MOSI	B,2 /// Add support
 	#define	P_MISO	B,3 /// for ATmega32u4
 	#define	P_SCK	B,1 /// CAN Interfacer
-	#define	MCP2515_CS	B,5 ///
-	#define	MCP2515_INT	D,3 ///
+	#define	MCP2515_CS	B,0 /// Jumper J103 /// Jumper J102 B,5
+	#define	MCP2515_INT	D,0 /// Jumper J105
 #elif defined(__AVR_ATmega128__)
 	#define	P_MOSI	B,2
 	#define	P_MISO	B,3
@@ -688,10 +688,10 @@ typedef struct {
 // The comment lines contain the filenames from the original universal CAN library,
 // see: http://www.kreatives-chaos.com/artikel/universelle-can-bibliothek
 
-class CAN
+class CANclass
 {
   public:
-    CAN();
+    CANclass();
 	/**mcp2515_write_id**/
     static void spi_start(uint8_t); 
     static uint8_t spi_wait(void);
@@ -764,7 +764,7 @@ class CAN
 #endif // CAN_H
 
 
-
+extern CANclass CAN;
 
 
 
