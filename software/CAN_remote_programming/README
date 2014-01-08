@@ -1,0 +1,14 @@
+This directory contains everything to reprogramm (reflash) 
+distant CANinterfacer nodes connected to the CAN bus.
+
+One extra CANinterfacer (or Arduino with CAN shield) 
+serves as USB programming interface and must be charged with 
+the "CAN_remote_programmer" sketch.
+
+The "bootloader_mcp2515" is installed on each of the CANinterfacers 
+of the bus. Each one gets a unique identifier set at compilation 
+(see README in the bootloader_mcp2515 directory).
+
+And finally a connected host PC can be used to transfer 
+compiled sketches using the "bootloader_python" program.
+
