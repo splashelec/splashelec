@@ -5,29 +5,29 @@ chipShooter
 bernt.weber@splashelec.com
 
 
-chipShooter is a little python script that helps finding 
-where to put componets during PCB hand assemby. 
-Give it a try with the accompagning example data by typing "./chipshooter.py".
+"chipShooter" is a little python script showing
+where to put components during PCB hand assembly. 
+Give it a try with the accompanying example data by typing "./chipshooter.py".
 
 Usage for your own PCBs:
 - create board data following the stuff in directory exampleBoardData :
 You will need an image showing the PCB, board.size file, component placement data and BOM.
-I get the data exporting it from gEDA, cutting images to board.size, and edititing the BOM
+I get the data exporting it from PCB design software (gEDA), cutting images to board.size, and editing the BOM
 manually to add line number and my personal component 'stock_id's.
 
 - start ./chipShooter
 Now you can advance, component by component, using up and down arrows as well 
-as page up and down. For each component, the crosshair shows the place where to place it.
-Mouswheel, as well as '+' and '-' keys, zoom the image. Mouse middle button allows to pan.
+as page up and down. For each component, the cross-hair shows the place where to place it.
+Mouse wheel, as well as '+' and '-' keys, zoom the image. Mouse middle button allows to pan.
 
 
 Future work (I would like that to be done.):
 - make a  better user interface
 - control a 'pick and place' machine:
-  All the data is allready there, instead of just showing placement on screen,
+  All the data is already there, instead of just showing placement on screen,
   it would be really nice, if there was an interface to our TM240A pick and place.
 - data base integration:
-  having component stock, bom etc. in a database would help generating more automatically 
-  all the files needed : pricing of BOMs throug the web, lists of components to order, assisted 
+  having component stock, BOM etc. in a database would help generating more automatically 
+  all the files needed : pricing of BOMs through the web, lists of components to order, assisted 
   association of components in schematic to stock_ids etc.
 
