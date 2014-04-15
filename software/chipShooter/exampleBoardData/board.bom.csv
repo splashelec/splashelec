@@ -3,7 +3,7 @@
 ;"# Date: Fri 01 Mar 2013 04:29:02 PM GMT UTC";;;;;;;;;;;;;;;;;;;
 ;"# Author: Bernt Weber";;;;;;;;;;;;;;;;;;;
 ;"# Title: (unknown) - PCB BOM";;;;;;;;;;;;;;;;;;;
-;"# Quantity";" Description";" Value";" RefDes";;"Total component count";"available count";;"ratio";"order count";"ordered";"unit price";;"total price";;"saving in 100 qty";"savings without connector";;;
+;"# Quantity";" Description";" Value";" RefDes";"StockId";"Total component count";"available count";;"ratio";"order count";"ordered";"unit price";;"total price";;"saving in 100 qty";"savings without connector";;;
 ;"# --------------------------------------------";;;;;;;;;;;;;;;;;;;
 0;1;" PCB";;;334;10;58;;5.8;;;5;"00 â¬";;5;"00 â¬";;4;"00 â¬";
 "# bottom";;;;;;;;;;;;;;;;;;;;
