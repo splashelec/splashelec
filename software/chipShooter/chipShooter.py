@@ -30,9 +30,12 @@ class Coordinates:
       refdes       = row[0]
       x            = float(row[3])
       y            = float(row[4])
+      rotation     = float(row[5])
       mountingSide = row[6]
       # create a dictionary that associates the refdes to the coordinates
-      self.data[refdes] = dict(x=x, y=y, mountingSide=mountingSide)
+      self.data[refdes] = dict(x=x, y=y, 
+                               rotation=rotation, 
+                               mountingSide=mountingSide)
   def get_data(self):
     return self.data
     
@@ -122,6 +125,7 @@ class  chipShooterApp:
         self.builder.get_object("value").set_label(str(line['value']))
         self.builder.get_object("stockId").set_label(str(line['stockId']))
         self.builder.get_object("refdes").set_label(str(line['refdes']))
+        self.builder.get_object("rotation").set_label(str(self.coordinates.get_data()[line['refdes']]['rotation']))
         self.builder.get_object("mountingSide").set_label(str(self.coordinates.get_data()[line['refdes']]['mountingSide']))
         self.croshX = self.coordinates.get_data()[line['refdes']]['x']/(self.boardsize['x'])
         self.croshY = 1.0-(self.coordinates.get_data()[line['refdes']]['y']/(self.boardsize['y']))
