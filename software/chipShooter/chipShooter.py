@@ -107,6 +107,12 @@ class Bom:
   def get_lineIndex(self):
     return self.lineIndex
 
+  def isLastLine(self):
+    return self.lineIndex == len(self.data) - 1
+
+  def set_lineIndexToStart(self):
+    self.lineIndex = 0
+
 class ComponentStackList:
 
   def __init__(self):
@@ -182,43 +188,63 @@ class  chipShooterApp:
 
         self.rescaleImage()
         
-    def show_line(self, line):
-        if line['refdes'] in self.coordinates.get_data().keys():
-          rotation     = self.coordinates.get_data()[line['refdes']]['rotation']
-          mountingSide = str(self.coordinates.get_data()[line['refdes']]['mountingSide'])
-          xCoord       = self.coordinates.get_data()[line['refdes']]['x']
-          yCoord       = self.coordinates.get_data()[line['refdes']]['y']
-        else:
-          rotation     = None
-          mountingSide = None
-          xCoord       = None
-          yCoord       = None
+    def combinedLineAndComponentStackDict (self, line):
+      # join data from coordinates and componentStack to get more information about the component line data
+      result = line.copy()
+      if line['refdes'] in self.coordinates.get_data().keys():
+        result['rotation']     = self.coordinates.get_data()[line['refdes']]['rotation']
+        result['mountingSide'] = str(self.coordinates.get_data()[line['refdes']]['mountingSide'])
+        result['xCoord']       = self.coordinates.get_data()[line['refdes']]['x']
+        result['yCoord']       = self.coordinates.get_data()[line['refdes']]['y']
 
-        self.builder.get_object("lineNumber").set_label(str(line['lineNumber']))
-        self.builder.get_object("quantity").set_label(str(line['position']+1)+'/'+str(line['quantity']))
-        self.builder.get_object("footprint").set_label(str(line['footprint']))
-        self.builder.get_object("value").set_label(str(line['value']))
-        self.builder.get_object("stockId").set_label(str(line['stockId']))
-        self.builder.get_object("refdes").set_label(str(line['refdes']))
-        self.builder.get_object("skip").set_label(str(line['skip']))
-        self.builder.get_object("comment").set_label(str(line['comment']))
-        if not rotation is None:
-          self.builder.get_object("rotation").set_label(str(rotation))
+      for componentStack in self.componentStackList.get_data():
+        if componentStack['stockId'] == line['stockId']:
+           result['rotationOffset'] = componentStack['rotationOffset']
+           result['stackNo'] = componentStack['stackNo']
+           result['feedRate'] = componentStack['feedRate']
+           result['head'] = componentStack['head']
+           result['height'] = componentStack['height']
+           result['rotationOffset'] = componentStack['rotationOffset']
+           result['xOffset'] = componentStack['xOffset']
+           result['yOffset'] = componentStack['yOffset']
+           result['speed'] = componentStack['speed']
+           break
+
+      if result.has_key('rotation') and result.has_key('rotationOffset') :
+        result['totalRotation'] = result['rotation'] + result['rotationOffset']
+
+      return result
+
+
+    def show_line(self, line):
+   
+        combinedLine = self.combinedLineAndComponentStackDict (line)
+
+        self.builder.get_object("lineNumber").set_label(str(combinedLine['lineNumber']))
+        self.builder.get_object("quantity").set_label(str(combinedLine['position']+1)+'/'+str(combinedLine['quantity']))
+        self.builder.get_object("footprint").set_label(str(combinedLine['footprint']))
+        self.builder.get_object("value").set_label(str(combinedLine['value']))
+        self.builder.get_object("stockId").set_label(str(combinedLine['stockId']))
+        self.builder.get_object("refdes").set_label(str(combinedLine['refdes']))
+        self.builder.get_object("skip").set_label(str(combinedLine['skip']))
+        self.builder.get_object("comment").set_label(str(combinedLine['comment']))
+        if combinedLine.has_key('rotation'):
+          self.builder.get_object("rotation").set_label(str(combinedLine['rotation']))
         else: self.builder.get_object("rotation").set_label('undefined')
-        if not mountingSide is None:
-          self.builder.get_object("mountingSide").set_label(mountingSide)
+        if combinedLine.has_key('mountingSide'):
+          self.builder.get_object("mountingSide").set_label(combinedLine['mountingSide'])
         else: self.builder.get_object("mountingSide").set_label('undefined')
 
-        if not (xCoord is None):
-          self.croshX = xCoord/(self.boardsize['x'])
-          self.croshY = 1.0-(yCoord/(self.boardsize['y']))
+        if combinedLine.has_key('xCoord'):
+          self.croshX = combinedLine['xCoord']/(self.boardsize['x'])
+          self.croshY = 1.0-(combinedLine['yCoord']/(self.boardsize['y']))
         else:
           self.croshX = None
           self.croshY = None
           
         # top or bottom ?
-        if not mountingSide is None:
-          top = self.coordinates.get_data()[line['refdes']]['mountingSide'] == 'top'
+        if combinedLine.has_key('mountingSide'):
+          top = combinedLine['mountingSide'] == 'top'
         else:
           top = None
       
@@ -228,21 +254,17 @@ class  chipShooterApp:
           self.pixbuf = self.pixbufBottom
           self.croshX = 1.0 - self.croshX # mirror
 
-        for componentStack in self.componentStackList.get_data():
-          if componentStack['stockId'] == line['stockId']:
-             rotationOffset = componentStack['rotationOffset']
-             self.builder.get_object("stackNo").set_label(str(componentStack['stackNo']))
-             self.builder.get_object("feedRate").set_label(str(componentStack['feedRate']))
-             self.builder.get_object("head").set_label(str(componentStack['head']))
-             self.builder.get_object("height").set_label(str(componentStack['height']))
-             self.builder.get_object("rotationOffset").set_label(str(componentStack['rotationOffset']))
-             self.builder.get_object("xOffset").set_label(str(componentStack['xOffset']))
-             self.builder.get_object("yOffset").set_label(str(componentStack['yOffset']))
-             self.builder.get_object("speed").set_label(str(componentStack['speed']))
-             break
+        if combinedLine.has_key('stackNo'):
+          self.builder.get_object("stackNo").set_label(str(combinedLine['stackNo']))
+          self.builder.get_object("feedRate").set_label(str(combinedLine['feedRate']))
+          self.builder.get_object("head").set_label(str(combinedLine['head']))
+          self.builder.get_object("height").set_label(str(combinedLine['height']))
+          self.builder.get_object("rotationOffset").set_label(str(combinedLine['rotationOffset']))
+          self.builder.get_object("xOffset").set_label(str(combinedLine['xOffset']))
+          self.builder.get_object("yOffset").set_label(str(combinedLine['yOffset']))
+          self.builder.get_object("speed").set_label(str(combinedLine['speed']))            
         else:
           # loop fell through without finding an associated component stack     
-          rotationOffset = None
           self.builder.get_object("stackNo").set_label('undefined')
           self.builder.get_object("feedRate").set_label('-')
           self.builder.get_object("head").set_label('-')
@@ -252,8 +274,8 @@ class  chipShooterApp:
           self.builder.get_object("yOffset").set_label('-')
           self.builder.get_object("speed").set_label('-')
 
-        if (rotation is None) or (rotationOffset is None) : self.rotation = None
-        else: self.rotation = rotation + rotationOffset
+        if combinedLine.has_key('totalRotation'): self.totalRotation = combinedLine['totalRotation']
+        else: self.totalRotation = None
 
         self.rescaleImage()
         
@@ -330,8 +352,8 @@ class  chipShooterApp:
         size = 94
         self.pixmap.draw_arc(gc, False, x-size/2, y-size/2, size, size, 0, 360 * 64)
 
-        if not (self.rotation is None):
-          angle = math.radians(self.rotation)
+        if not (self.totalRotation is None):
+          angle = math.radians(self.totalRotation)
           cm = self.pixmap.get_colormap()
           blue = cm.alloc_color('blue')
           gc = self.pixmap.new_gc(foreground=blue)
@@ -402,6 +424,9 @@ class  chipShooterApp:
     def on_viewport1_scroll_event(self, widget, event):
 	self.on_window_scroll_event(widget, event);
     
+    def on_generateButton_clicked_event(self, event):
+        print "generate button clicked"
+
 if __name__ == "__main__":
   size = Boardsize()
   bom = Bom()
