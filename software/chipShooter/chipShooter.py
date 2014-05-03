@@ -117,7 +117,7 @@ class ComponentStackList:
 
   def __init__(self):
     self.data = []
-    self.fileHandle = open(PCBdataDir + 'pnp.componentStacks.csv', 'rb')
+    self.fileHandle = open(PCBdataDir + 'componentStacks.csv', 'rb')
     self.reader = csv.reader(self.fileHandle, delimiter=',', quotechar='"')
     for row in self.reader:
       # throw comments away
@@ -212,13 +212,15 @@ class  chipShooterApp:
 
       if result.has_key('rotation') and result.has_key('rotationOffset') :
         result['totalRotation'] = result['rotation'] + result['rotationOffset']
+        while result['totalRotation'] >  180 : result['totalRotation'] -= 360
+        while result['totalRotation'] < -180 : result['totalRotation'] += 360
 
       return result
 
 
     def show_line(self, line):
    
-        combinedLine = self.combinedLineAndComponentStackDict (line)
+        combinedLine = self.combinedLineAndComponentStackDict(line)
 
         self.builder.get_object("lineNumber").set_label(str(combinedLine['lineNumber']))
         self.builder.get_object("quantity").set_label(str(combinedLine['position']+1)+'/'+str(combinedLine['quantity']))
@@ -278,6 +280,70 @@ class  chipShooterApp:
         else: self.totalRotation = None
 
         self.rescaleImage()
+
+    def generateTM240Afile(self, mountingSide):
+    # generates pick and place file for top or bottom face of the PCB
+
+        # open output file
+        file = open(PCBdataDir + 'TM240Acontrol.generated.' + mountingSide + '.csv', 'w')
+  
+        # copy header file to output
+        header = open(PCBdataDir + 'pnp.TM240A.fileHeader.csv', 'rb') 
+        file.write(header.read()) 
+        file.write('\n')
+        header.close()
+
+        # generate stack offset lines
+        for componentStack in self.componentStackList.get_data():
+          file.write('65535, 1, ' + str(componentStack['stackNo'])  + ', ' 
+                                  + str(componentStack['xOffset'])  + ', ' 
+                                  + str(componentStack['yOffset'])  + '\n')
+
+        # generate stack feed speed lines
+        for componentStack in self.componentStackList.get_data():
+          file.write('65535, 2, ' + str(componentStack['stackNo']) + ', ' + str(componentStack['feedRate']) + '\n')
+
+        self.bom.set_lineIndexToStart()
+        outputFileLineNumber = 1
+        lastSpeed = None;
+        while True:
+          line = self.bom.get_line()
+          combinedLine = self.combinedLineAndComponentStackDict(line)
+
+          if (combinedLine.has_key('totalRotation') 
+              and combinedLine['mountingSide'] == mountingSide): 
+          # totalRotation is an indication that all the data is present
+            # speed command line
+            if combinedLine['speed'] != lastSpeed: 
+              file.write('0, ' + str(int(combinedLine['speed']/10)) + '\n')
+              lastSpeed = combinedLine['speed']
+            # repeat offset for stack 0, which is used for different components
+            if combinedLine['stackNo'] == 0:
+              file.write('65535, 1, ' + str(combinedLine['stackNo'])  + ', ' 
+                                      + str(combinedLine['xOffset'])  + ', ' 
+                                      + str(combinedLine['yOffset'])  + '\n')
+
+            # component placement line
+            file.write(str(outputFileLineNumber)    + ', ' +
+                       str(combinedLine['head']) + ', ' +
+                       str(combinedLine['stackNo']) + ', ' +
+                       str(combinedLine['xCoord']) + ', ' +
+                       str(combinedLine['yCoord']) + ', ' +
+                       str(combinedLine['totalRotation']) + ', ' +
+                       str(combinedLine['height']) + ', ' +
+                       str(combinedLine['skip']) + ', ' +
+                       str(combinedLine['refdes']) + ', ' +
+                       str(combinedLine['value']) + ', ' +
+                       str(combinedLine['footprint']) + ', ' +
+                       str(combinedLine['comment']) + '\n')
+                    
+          if self.bom.isLastLine(): break
+          else : 
+            self.bom.set_lineIndex(self.bom.get_lineIndex()+1)
+            outputFileLineNumber += 1
+
+        file.close()
+
         
     def on_window_destroy(self, widget, data=None):
       gtk.main_quit()
@@ -312,15 +378,15 @@ class  chipShooterApp:
       # left arrow
       if event.keyval in [65430, 65361]: pass
       # up arrow
-      if event.keyval in [65431, 65362]: bom.set_lineIndex(bom.get_lineIndex()-1)
+      if event.keyval in [65431, 65362]: self.bom.set_lineIndex(self.bom.get_lineIndex()-1)
       # right arrow
       if event.keyval in [65432, 65363]: pass
       # down arrow
-      if event.keyval in [65433, 65364]: bom.set_lineIndex(bom.get_lineIndex()+1)
+      if event.keyval in [65433, 65364]: self.bom.set_lineIndex(self.bom.get_lineIndex()+1)
       # page up
-      if event.keyval in [65434, 65365]: bom.set_lineIndex(bom.get_lineIndex()-10)
+      if event.keyval in [65434, 65365]: self.bom.set_lineIndex(self.bom.get_lineIndex()-10)
       # page down
-      if event.keyval in [65435, 65366]: bom.set_lineIndex(bom.get_lineIndex()+10)
+      if event.keyval in [65435, 65366]: self.bom.set_lineIndex(self.bom.get_lineIndex()+10)
       # + 
       if event.keyval in [65451, 43]: self.scale *= 1.2; self.rescaleImage()
       # - 
@@ -384,7 +450,7 @@ class  chipShooterApp:
       return True
 	
     def on_image_motion_notify_event(self, widget, event):
-      print "Mouse moved to", event.x, event.y
+      #print "Mouse moved to", event.x, event.y
       return True
 
     def on_scrolledwindow1_motion_notify_event(self, widget, event):	
@@ -392,7 +458,7 @@ class  chipShooterApp:
       return self.on_image_motion_notify_event(widget, event)
     
     def on_window_motion_notify_event(self, widget, event):	
-      print "window :"
+      # print "window :"
       return self.on_image_motion_notify_event(widget, event)
       
     def on_eventbox1_scroll_event(self, widget, event):
@@ -425,7 +491,8 @@ class  chipShooterApp:
 	self.on_window_scroll_event(widget, event);
     
     def on_generateButton_clicked_event(self, event):
-        print "generate button clicked"
+        self.generateTM240Afile(mountingSide='top')
+        self.generateTM240Afile(mountingSide='bottom')
 
 if __name__ == "__main__":
   size = Boardsize()

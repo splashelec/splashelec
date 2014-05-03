@@ -25,7 +25,18 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <placeholder/>
+              <object class="GtkButton" id="generateButton">
+                <property name="label" translatable="yes">Generate TM220/240A pick-and-place machine file(s)</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_generateButton_clicked_event" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
               <placeholder/>
@@ -62,6 +73,7 @@
                 <property name="can_focus">False</property>
                 <property name="events">GDK_BUTTON2_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                 <signal name="button-press-event" handler="on_viewport1_button_press_event" swapped="no"/>
+                <signal name="drag-motion" handler="on_viewport_motion_notify_event" object="window" swapped="no"/>
                 <signal name="motion-notify-event" handler="on_viewport1_motion_notify_event" swapped="no"/>
                 <signal name="scroll-event" handler="on_viewport1_scroll_event" swapped="no"/>
                 <child>
@@ -70,6 +82,7 @@
                     <property name="can_focus">False</property>
                     <property name="events">GDK_EXPOSURE_MASK | GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON1_MOTION_MASK | GDK_BUTTON2_MOTION_MASK | GDK_BUTTON3_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_FOCUS_CHANGE_MASK | GDK_STRUCTURE_MASK | GDK_PROPERTY_CHANGE_MASK | GDK_VISIBILITY_NOTIFY_MASK | GDK_PROXIMITY_IN_MASK | GDK_PROXIMITY_OUT_MASK | GDK_SUBSTRUCTURE_MASK | GDK_SCROLL_MASK</property>
                     <property name="stock">gtk-missing-image</property>
+                    <signal name="drag-motion" handler="on_viewport_motion_notify_event" object="viewport1" swapped="no"/>
                     <signal name="motion-notify-event" handler="on_image_motion_notify_event" swapped="no"/>
                     <signal name="scroll-event" handler="on_image_scroll_event" swapped="no"/>
                   </object>
