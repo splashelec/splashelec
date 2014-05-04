@@ -3,6 +3,7 @@
 import gtk
 import csv
 import math
+import re
 
 PCBdataDir = 'exampleBoardData'
 if PCBdataDir[len(PCBdataDir)-1] != '/':
@@ -14,29 +15,63 @@ class Boardsize:
     for row in self.reader:
       # throw comments away
       if row[0][0] == "#": continue
-      self.x = float(row[0])
-      self.y = float(row[1])
+
+      self.x = float(row[0].split()[0])
+      self.xUnits = row[0].split()[1].lower()
+      if self.xUnits == 'mil': self.x *= 25.4/1000
+      elif self.xUnits == 'mm': pass
+      else: raise Exception('units not recognized')
+
+      self.y = float(row[1].split()[0])
+      self.yUnits = row[1].split()[1].lower()
+      if self.yUnits == 'mil': self.y *= 25.4/1000
+      elif self.yUnits == 'mm': pass
+      else: raise Exception('units not recognized')
       
   def get_size(self):
     return dict(x=self.x, y=self.y)
 
+  def getX(self):
+    return self.x
+
+  def getY(self):
+    return self.y
+
 
 class Coordinates:
-  def __init__(self):
+  def __init__(self, boardSize):
+    unitsFound = False
     self.data = {}
     self.reader = csv.reader(open(PCBdataDir + 'board.xy', 'rb'), delimiter=',', quotechar='"')
     for row in self.reader:
       # throw comments away
-      if row[0][0] == "#": continue
+      if row[0][0] == "#": # this is a comment line
+        print row
+        # match the line "# X,Y in mil.  rotation in degrees."
+        p = re.compile('# X,Y in (?P<units>(mm|mil)).  rotation in degrees.')
+        match = p.match(','.join(row))
+        if match:
+          units = match.group('units')
+          if units == "mil": factor = 25.4/1000
+          elif units == "mm": factor = 1
+          else: raise Exception('Units not recognized')
+          unitsFound = True
+        continue
       refdes       = row[0]
-      x            = float(row[3])
-      y            = float(row[4])
+      x            = float(row[3])*factor
+      y            = float(row[4])*factor
       rotation     = float(row[5])
       mountingSide = row[6]
+
+      # flip x coordinate if component has to be placed on bottom side
+      if mountingSide == 'bottom': x = boardSize.getX() - x
+
       # create a dictionary that associates the refdes to the coordinates
       self.data[refdes] = dict(x=x, y=y, 
                                rotation=rotation, 
                                mountingSide=mountingSide)
+    if not unitsFound : raise Exception('no units found in .xy file')
+
 
   def get_data(self):
     return self.data
@@ -239,6 +274,7 @@ class  chipShooterApp:
 
         if combinedLine.has_key('xCoord'):
           self.croshX = combinedLine['xCoord']/(self.boardsize['x'])
+          # board coordinates are zero at bottom, gtk coordinates are zero at top : reverse them
           self.croshY = 1.0-(combinedLine['yCoord']/(self.boardsize['y']))
         else:
           self.croshX = None
@@ -254,7 +290,6 @@ class  chipShooterApp:
           self.pixbuf = self.pixbufTop
         else:
           self.pixbuf = self.pixbufBottom
-          self.croshX = 1.0 - self.croshX # mirror
 
         if combinedLine.has_key('stackNo'):
           self.builder.get_object("stackNo").set_label(str(combinedLine['stackNo']))
@@ -497,7 +532,7 @@ class  chipShooterApp:
 if __name__ == "__main__":
   size = Boardsize()
   bom = Bom()
-  coordinates = Coordinates()
+  coordinates = Coordinates(size)
   componentStackList = ComponentStackList()
   app = chipShooterApp(bom, coordinates, size, componentStackList)
   app.window.show()
