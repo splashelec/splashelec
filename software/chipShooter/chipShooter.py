@@ -322,10 +322,9 @@ class  chipShooterApp:
         # open output file
         file = open(PCBdataDir + 'TM240Acontrol.generated.' + mountingSide + '.csv', 'w')
   
-        # copy header file to output
-        header = open(PCBdataDir + 'pnp.TM240A.fileHeader.0.csv', 'rb') 
+        # copy 65535,0 section template file to output
+        header = open(PCBdataDir + 'pnp.TM240A.template.0.csv', 'rb') 
         file.write(header.read()) 
-        file.write('\n')
         header.close()
 
         # generate stack offset lines
@@ -338,10 +337,9 @@ class  chipShooterApp:
         for componentStack in self.componentStackList.get_data():
           file.write('65535, 2, ' + str(componentStack['stackNo']) + ', ' + str(componentStack['feedRate']) + '\n')
 
-        # copy header file to output
-        header = open(PCBdataDir + 'pnp.TM240A.fileHeader.3.csv', 'rb') 
+        # copy section 65535,3 section template file to output
+        header = open(PCBdataDir + 'pnp.TM240A.template.3.csv', 'rb') 
         file.write(header.read()) 
-        file.write('\n')
         header.close()
 
         self.bom.set_lineIndexToStart()
@@ -356,7 +354,7 @@ class  chipShooterApp:
           # totalRotation is an indication that all the data is present
             # speed command line
             if combinedLine['speed'] != lastSpeed: 
-              file.write('0, ' + str(int(combinedLine['speed']/10)) + ',0,0,0,0,0,0\n')
+              file.write('0, ' + str(int(combinedLine['speed']/10)) + ', 0, 0, 0, 0, 0, 0\n')
               lastSpeed = combinedLine['speed']
             # repeat offset for stack 0, which is used for different components
             if combinedLine['stackNo'] == 0:

@@ -1,0 +1,6 @@
+%,***** pnp.TM240A.template.3.csv begins here *****
+%,Panelized Boards (65535-3),X,Y,,,,,,,
+65535, 3, 0, 0, 0, 0, 0, 0,,,
+%
+%,line number 0 for Speed command - line number > 1 component placement
+%,***** generated lines begin here *****
