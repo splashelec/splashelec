@@ -25,8 +25,10 @@ stacks (see file componentStacks.csv), this data will be displayed too.
 Use an empty componentStacks.csv file if you do not need this feature.
 
 - launch the program: ./chipShooter
-Now you can advance, component by component, using up and down arrows as well 
-as page up and down. For each component, the cross-hair shows the place where to place it.
+Now you can advance, component by component, using left and right arrows. 
+Up and down arrows move by one BOM line (multiple refdes for the same component),  
+as page up and down move by 10 BOM lines. 
+For each component, the cross-hair shows the place where to place it.
 Mouse wheel, as well as '+' and '-' keys, zoom the image. Mouse middle button allows to pan.
 
 If componentStacks.csv is available, chipshooter shows rotation on the crosshair (for verification) 
@@ -35,9 +37,11 @@ and can generate machine control files for the TM240A pick and place machine.
 
 Future work (I would like that to be done.)
 -------------------------------------------
-- make a  better user interface
+- make a  better user interface:
+     - error messages while opening files, parsing 
+     - chose directories and filenames in the user interface
+     - make it possible to edit data in the interface while visualizing
 - allow for importing/exporting from/to other software and machines
-- make it possible to edit data in the interface 
   (changing component stack association, rotation angle etc)
 - database integration:
   having component stock, BOM etc. in a database would help generating more automatically 

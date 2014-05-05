@@ -142,6 +142,18 @@ class Bom:
   def get_lineIndex(self):
     return self.lineIndex
 
+  def goTo_nextLine(self):
+    presentLineNumber = self.data[self.lineIndex]['lineNumber']
+    while ((self.lineIndex < len(self.data) - 1) and 
+           (self.data[self.lineIndex]['lineNumber'] == presentLineNumber)):
+      self.lineIndex += 1
+
+  def goTo_previousLine(self):
+    presentLineNumber = self.data[self.lineIndex]['lineNumber']
+    while ((self.lineIndex > 0) and 
+           (self.data[self.lineIndex]['lineNumber'] == presentLineNumber)):
+      self.lineIndex -= 1
+
   def isLastLine(self):
     return self.lineIndex == len(self.data) - 1
 
@@ -415,17 +427,19 @@ class  chipShooterApp:
       except Exception: print event.keyval
 
       # left arrow
-      if event.keyval in [65430, 65361]: pass
+      if event.keyval in [65430, 65361]: self.bom.set_lineIndex(self.bom.get_lineIndex()-1)
       # up arrow
-      if event.keyval in [65431, 65362]: self.bom.set_lineIndex(self.bom.get_lineIndex()-1)
+      if event.keyval in [65431, 65362]: self.bom.goTo_previousLine()
       # right arrow
-      if event.keyval in [65432, 65363]: pass
+      if event.keyval in [65432, 65363]: self.bom.set_lineIndex(self.bom.get_lineIndex()+1)
       # down arrow
-      if event.keyval in [65433, 65364]: self.bom.set_lineIndex(self.bom.get_lineIndex()+1)
+      if event.keyval in [65433, 65364]: self.bom.goTo_nextLine()
       # page up
-      if event.keyval in [65434, 65365]: self.bom.set_lineIndex(self.bom.get_lineIndex()-10)
+      if event.keyval in [65434, 65365]: 
+        for i in range(10): self.bom.goTo_previousLine()
       # page down
-      if event.keyval in [65435, 65366]: self.bom.set_lineIndex(self.bom.get_lineIndex()+10)
+      if event.keyval in [65435, 65366]: 
+        for i in range(10): self.bom.goTo_nextLine()
       # + 
       if event.keyval in [65451, 43]: self.scale *= 1.2; self.rescaleImage()
       # - 
