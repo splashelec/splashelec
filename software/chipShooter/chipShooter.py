@@ -426,26 +426,43 @@ class  chipShooterApp:
       try : print chr(event.keyval), event.keyval
       except Exception: print event.keyval
 
-      # left arrow
-      if event.keyval in [65430, 65361]: self.bom.set_lineIndex(self.bom.get_lineIndex()-1)
-      # up arrow
-      if event.keyval in [65431, 65362]: self.bom.goTo_previousLine()
-      # right arrow
-      if event.keyval in [65432, 65363]: self.bom.set_lineIndex(self.bom.get_lineIndex()+1)
-      # down arrow
-      if event.keyval in [65433, 65364]: self.bom.goTo_nextLine()
-      # page up
-      if event.keyval in [65434, 65365]: 
-        for i in range(10): self.bom.goTo_previousLine()
-      # page down
-      if event.keyval in [65435, 65366]: 
-        for i in range(10): self.bom.goTo_nextLine()
-      # + 
-      if event.keyval in [65451, 43]: self.scale *= 1.2; self.rescaleImage()
-      # - 
-      if event.keyval in [65453, 45]: self.scale /= 1.2; self.rescaleImage()
-      # q Q
-      if event.keyval in [ord('q'), ord('Q')]: exit()
+      if event.state & gtk.gdk.SHIFT_MASK:
+        #print "hadjustement", self.viewport1.get_hadjustment().get_value()
+        #print "upper, lower:", self.viewport1.get_hadjustment().get_upper(), self.viewport1.get_hadjustment().get_lower()
+        # left arrow
+        if event.keyval in [65430, 65361]: 
+          self.viewport1.get_hadjustment().set_value(self.viewport1.get_hadjustment().get_value() + 10)
+        # up arrow
+        if event.keyval in [65431, 65362]: 
+          self.viewport1.get_vadjustment().set_value(self.viewport1.get_vadjustment().get_value() + 10)
+        # right arrow
+        if event.keyval in [65432, 65363]: 
+          self.viewport1.get_hadjustment().set_value(self.viewport1.get_hadjustment().get_value() - 10)
+        # down arrow
+        if event.keyval in [65433, 65364]: 
+          self.viewport1.get_vadjustment().set_value(self.viewport1.get_vadjustment().get_value() - 10)
+
+      else: # shift not pressed
+        # left arrow
+        if event.keyval in [65430, 65361]: self.bom.set_lineIndex(self.bom.get_lineIndex()-1)
+        # up arrow
+        if event.keyval in [65431, 65362]: self.bom.goTo_previousLine()
+        # right arrow
+        if event.keyval in [65432, 65363]: self.bom.set_lineIndex(self.bom.get_lineIndex()+1)
+        # down arrow
+        if event.keyval in [65433, 65364]: self.bom.goTo_nextLine()
+        # page up
+        if event.keyval in [65434, 65365]: 
+          for i in range(10): self.bom.goTo_previousLine()
+        # page down
+        if event.keyval in [65435, 65366]: 
+          for i in range(10): self.bom.goTo_nextLine()
+        # + 
+        if event.keyval in [65451, 43]: self.scale *= 1.2; self.rescaleImage()
+        # - 
+        if event.keyval in [65453, 45]: self.scale /= 1.2; self.rescaleImage()
+        # q Q
+        if event.keyval in [ord('q'), ord('Q')]: exit()
 
       self.show_line(self.bom.get_line())
       self.rescaleImage()

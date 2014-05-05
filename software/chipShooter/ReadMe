@@ -29,7 +29,8 @@ Now you can advance, component by component, using left and right arrows.
 Up and down arrows move by one BOM line (multiple refdes for the same component),  
 as page up and down move by 10 BOM lines. 
 For each component, the cross-hair shows the place where to place it.
-Mouse wheel, as well as '+' and '-' keys, zoom the image. Mouse middle button allows to pan.
+Mouse wheel, as well as '+' and '-' keys, zoom the image. 
+Mouse middle button or shift-arrow allows to pan.
 
 If componentStacks.csv is available, chipshooter shows rotation on the crosshair (for verification) 
 and can generate machine control files for the TM240A pick and place machine.
