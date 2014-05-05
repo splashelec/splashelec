@@ -323,7 +323,7 @@ class  chipShooterApp:
         file = open(PCBdataDir + 'TM240Acontrol.generated.' + mountingSide + '.csv', 'w')
   
         # copy header file to output
-        header = open(PCBdataDir + 'pnp.TM240A.fileHeader.csv', 'rb') 
+        header = open(PCBdataDir + 'pnp.TM240A.fileHeader.0.csv', 'rb') 
         file.write(header.read()) 
         file.write('\n')
         header.close()
@@ -332,11 +332,17 @@ class  chipShooterApp:
         for componentStack in self.componentStackList.get_data():
           file.write('65535, 1, ' + str(componentStack['stackNo'])  + ', ' 
                                   + str(componentStack['xOffset'])  + ', ' 
-                                  + str(componentStack['yOffset'])  + '\n')
+                                  + str(componentStack['yOffset'])  + ',\n')
 
         # generate stack feed speed lines
         for componentStack in self.componentStackList.get_data():
           file.write('65535, 2, ' + str(componentStack['stackNo']) + ', ' + str(componentStack['feedRate']) + '\n')
+
+        # copy header file to output
+        header = open(PCBdataDir + 'pnp.TM240A.fileHeader.3.csv', 'rb') 
+        file.write(header.read()) 
+        file.write('\n')
+        header.close()
 
         self.bom.set_lineIndexToStart()
         outputFileLineNumber = 1
@@ -350,21 +356,21 @@ class  chipShooterApp:
           # totalRotation is an indication that all the data is present
             # speed command line
             if combinedLine['speed'] != lastSpeed: 
-              file.write('0, ' + str(int(combinedLine['speed']/10)) + '\n')
+              file.write('0, ' + str(int(combinedLine['speed']/10)) + ',0,0,0,0,0,0\n')
               lastSpeed = combinedLine['speed']
             # repeat offset for stack 0, which is used for different components
             if combinedLine['stackNo'] == 0:
               file.write('65535, 1, ' + str(combinedLine['stackNo'])  + ', ' 
                                       + str(combinedLine['xOffset'])  + ', ' 
-                                      + str(combinedLine['yOffset'])  + '\n')
+                                      + str(combinedLine['yOffset'])  + ',\n')
 
             # component placement line
             file.write(str(outputFileLineNumber)    + ', ' +
                        str(combinedLine['head']) + ', ' +
                        str(combinedLine['stackNo']) + ', ' +
-                       str(combinedLine['xCoord']) + ', ' +
-                       str(combinedLine['yCoord']) + ', ' +
-                       str(combinedLine['totalRotation']) + ', ' +
+                       "{:.2f}".format(combinedLine['xCoord'])+ ', ' +
+                       "{:.2f}".format(combinedLine['yCoord'])+ ', ' +
+                       str(int(combinedLine['totalRotation'])) + ', ' +
                        str(combinedLine['height']) + ', ' +
                        str(combinedLine['skip']) + ', ' +
                        str(combinedLine['refdes']) + ', ' +
