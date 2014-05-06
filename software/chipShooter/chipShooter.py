@@ -362,9 +362,11 @@ class  chipShooterApp:
           line = self.bom.get_line()
           combinedLine = self.combinedLineAndComponentStackDict(line)
 
+          # totalRotation is an indication that all the data is present.
+          # The TM240A machine has only two heads. Ingnore all other heads.
           if (combinedLine.has_key('totalRotation') 
-              and combinedLine['mountingSide'] == mountingSide): 
-          # totalRotation is an indication that all the data is present
+              and combinedLine['mountingSide'] == mountingSide
+              and combinedLine['head'] in [1, 2]): 
             # speed command line
             if combinedLine['speed'] != lastSpeed: 
               file.write('0, ' + str(int(combinedLine['speed']/10)) + ', 0, 0, 0, 0, 0, 0\n')
