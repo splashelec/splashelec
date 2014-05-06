@@ -1,6 +1,8 @@
 %,***** pnp.TM240A.template.3.csv begins here *****
+%,Modify the panelization lines, if needed.
 %,Panelized Boards (65535-3),X,Y,,,,,,,
-65535, 3, 0, 0, 0, 0, 0, 0,,,
+%, Do not declare the first board, it's implicit. If doing so the board gets two levels of superposed components.
+% 65535, 3, 50, 0, 0, 0, 0, 0,,,
 %
 %,line number 0 for Speed command - line number > 1 component placement
 %,***** generated lines begin here *****

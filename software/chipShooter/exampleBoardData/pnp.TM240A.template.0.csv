@@ -1,5 +1,5 @@
 %,***** pnp.TM240A.template.0.csv begins here *****
-%,Modify the origin and panelization lines, if needed.
+%,Modify the origin line, if needed.
 %,Origin Offset (65535-0),X,Y
 65535, 0, 0, 0,,,,,,,
 %
