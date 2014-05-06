@@ -60,6 +60,7 @@ class Coordinates:
       refdes       = row[0]
       x            = float(row[3])*factor
       y            = float(row[4])*factor
+      # angles are clockwise
       rotation     = float(row[5])
       mountingSide = row[6]
 
@@ -380,7 +381,8 @@ class  chipShooterApp:
                        str(combinedLine['stackNo']) + ', ' +
                        "{:.2f}".format(combinedLine['xCoord'])+ ', ' +
                        "{:.2f}".format(combinedLine['yCoord'])+ ', ' +
-                       str(int(combinedLine['totalRotation'])) + ', ' +
+                       # TM240A angles are anticlockwise
+                       str(-1*int(combinedLine['totalRotation'])) + ', ' +
                        str(combinedLine['height']) + ', ' +
                        str(combinedLine['skip']) + ', ' +
                        str(combinedLine['refdes']) + ', ' +
