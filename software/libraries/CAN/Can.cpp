@@ -53,7 +53,7 @@ CANclass::CANclass(){
 	}
 
 	uint8_t CANclass::spi_wait(void) {
-		// Wait until the previous values are ​​written
+		// Wait until the previous values are ​​written/transfer complete
 		while(!(SPSR & (1<<SPIF)))
 			;
 
@@ -521,9 +521,114 @@ uint8_t CANclass::mcp2515_read_id(uint16_t *id)
 /****************************END mcp2515_read_id***************************/
 
 
+/****************************mcp2515_read_id_complete***************************/
+
+#if	SUPPORT_EXTENDED_CANID
+uint8_t CANclass::mcp2515_read_id_complete(uint32_t* id,uint8_t* statusSent,uint8_t* frameType) // frameType = 2 (RTR frame), or 1, or 0 (NORMAL FRAME)
+{
+	uint8_t addr;
+
+	#ifdef	RXnBF_FUNKTION
+		if (!IS_SET(MCP2515_RX0BF))
+			addr = SPI_READ_RX;
+		else if (!IS_SET(MCP2515_RX1BF))
+			addr = SPI_READ_RX | 0x04;
+		else
+			return 0;
+	#else
+		// read status
+		uint8_t status = mcp2515_read_status(SPI_RX_STATUS);
+	
+		if (_bit_is_set(status,6)) {
+			// message in buffer 0
+			addr = SPI_READ_RX;
+		}
+		else if (_bit_is_set(status,7)) {
+			// message in buffer 1
+			addr = SPI_READ_RX | 0x04;
+		}
+		else {
+			// Error: no message available
+			return 0;
+		}
+	#endif
+
+	statusSent = &status;
+
+	RESET(MCP2515_CS);
+	spi_putc(addr);
+
+	//CAN ID reading and checking ??
+	*frameType = mcp2515_read_id(id);
+}
+
+#else
+
+uint8_t CANclass::mcp2515_read_id_complete(uint16_t* id,uint8_t* statusSent,uint8_t* frameType)
+{
+	uint8_t addr;
+
+	#ifdef	RXnBF_FUNKTION
+		if (!IS_SET(MCP2515_RX0BF))
+			addr = SPI_READ_RX;
+		else if (!IS_SET(MCP2515_RX1BF))
+			addr = SPI_READ_RX | 0x04;
+		else
+			return 0;
+	#else
+		// read status
+		uint8_t status = mcp2515_read_status(SPI_RX_STATUS);
+	
+		if (_bit_is_set(status,6)) {
+			// message in buffer 0
+			addr = SPI_READ_RX;
+		}
+		else if (_bit_is_set(status,7)) {
+			// message in buffer 1
+			addr = SPI_READ_RX | 0x04;
+		}
+		else {
+			// Error: no message available
+			return 0;
+		}
+	#endif
+	
+	RESET(MCP2515_CS);
+	spi_putc(addr);
+
+	//CAN ID reading and checking ??
+	*frameType = mcp2515_read_id(&msg->id);
+	if (*frameType & 0x01) {
+		// Discard messages with extended ID
+		SET(MCP2515_CS);
+		#ifdef	RXnBF_FUNKTION
+		if (!IS_SET(MCP2515_RX0BF))
+		#else
+		if (_bit_is_set(status, 6))
+		#endif
+			mcp2515_bit_modify(CANINTF, (1<<RX0IF), 0);
+		else
+			mcp2515_bit_modify(CANINTF, (1<<RX1IF), 0);
+	
+		return 0;
+	}
+}
+#endif	// SUPPORT_EXTENDED_CANID
+
+/****************************END mcp2515_read_id_complete***************************/
+
+
 /****************************mcp2515_get_message function to get an incoming msg***************************/
 uint8_t CANclass::mcp2515_get_message(can_t *msg)
 {
+	/* Todo rewrite get_message en utilisant get_id_complete() and get_data()
+	uint8_t status;
+	uint8_t frameType;
+	mcp2515_read_id_complete(&msg->id,&status,&frameType);
+	mcp2515_get_data(msg,frameType,status);
+    */
+
+	
 	uint8_t addr;
 
 	#ifdef	RXnBF_FUNKTION
@@ -615,6 +720,47 @@ uint8_t CANclass::mcp2515_get_message(can_t *msg)
 
 /****************************END mcp2515_get_message***************************/
 
+/****************************mcp2515_get_data***************************/
+// use in conjunction with get_id_complete to get the data part of the CAN packet (if necessary) 
+void CANclass::mcp2515_get_data(can_t* msg, uint16_t tmp,uint8_t status)
+{
+	uint8_t data[8];
+
+	msg->flags.extended = tmp & 0x01;
+	// read DLC
+	uint8_t length = spi_putc(0xff);
+	#ifdef RXnBF_FUNKTION
+		if (!(tmp & 0x01))
+			msg->flags.rtr = (tmp & 0x02) ? 1 : 0;
+		else
+			msg->flags.rtr = (length & (1<<RTR)) ? 1 : 0;
+	#else
+		msg->flags.rtr = (_bit_is_set(status, 3)) ? 1 : 0;
+	#endif
+
+	length &= 0x0f;
+	msg->length = length;
+
+	// read data
+	length &= 0x0f;
+	for (uint8_t i=0;i<length;i++) {
+		data[i] = spi_putc(0xff);
+		msg->data[i]=data[i];
+	}
+	SET(MCP2515_CS);
+	// clear interrupt flag
+	#ifdef RXnBF_FUNKTION
+	if (!IS_SET(MCP2515_RX0BF))
+	#else
+	if (_bit_is_set(status, 6))
+	#endif
+		mcp2515_bit_modify(CANINTF, (1<<RX0IF), 0);
+	else
+		mcp2515_bit_modify(CANINTF, (1<<RX1IF), 0);
+	CAN_INDICATE_RX_TRAFFIC_FUNCTION;
+}
+
+/****************************END mcp2515_get_data***************************/
 
 /****************************mcp2515_get_dyn_filter function to get a dynamic filter***************************/
 uint8_t CANclass::mcp2515_get_filter(uint8_t number, can_filter_t *filter)

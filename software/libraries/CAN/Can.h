@@ -24,6 +24,7 @@
  
 #ifndef CAN_H
 #define CAN_H
+#include "Arduino.h"
 
 #if defined (__cplusplus)
 	extern "C" {
@@ -437,7 +438,7 @@
 	#define	P_MISO	B,3 /// for ATmega32u4
 	#define	P_SCK	B,1 /// CAN Interfacer
 	#define	MCP2515_CS	B,0 /// Jumper J103 /// Jumper J102 B,5
-	#define	MCP2515_INT	D,0 /// Jumper J105
+	#define	MCP2515_INT	D,0 /// Jumper J105 /// Jumper J104 D,3
 #elif defined(__AVR_ATmega128__)
 	#define	P_MOSI	B,2
 	#define	P_MISO	B,3
@@ -713,8 +714,12 @@ class CANclass
 	/**mcp2515_read_id**/
 	uint8_t mcp2515_read_id(uint32_t *);
 	uint8_t mcp2515_read_id(uint16_t *);
+	uint8_t mcp2515_read_id_complete(uint16_t *,uint8_t*,uint8_t*);
+	uint8_t mcp2515_read_id_complete(uint32_t *,uint8_t*,uint8_t*);
 	/**mcp2515_get_message**/
 	uint8_t mcp2515_get_message(can_t *);
+	/**mcg2512_get_data**/
+	void mcp2515_get_data(can_t*, uint16_t,uint8_t);
 	/**mcp2515_get_dyn_filter**/
 	uint8_t mcp2515_get_filter(uint8_t, can_filter_t *);
 	/**mcp2515_error_register**/
@@ -765,28 +770,4 @@ class CANclass
 
 
 extern CANclass CAN;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

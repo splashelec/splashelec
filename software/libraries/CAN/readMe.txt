@@ -6,6 +6,8 @@
 // This work is published under a BSD license.
 
 // The adaptation to Arduino was done by Kevin Bruget.
+// Cyrill Guillemot and Xi Chen added functions 
+// to allow separate fetching of CAN id and data part of a packet.
 
 To use it just copy/paste this directory into Arduino library folder.
 

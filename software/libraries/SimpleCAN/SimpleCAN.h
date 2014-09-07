@@ -1,6 +1,10 @@
 #ifndef SIMPLECAN_H
 #define SIMPLECAN_H
 
+#include "Arduino.h"
+#include "../CAN/Can.h"
+#include "sailingSpecifics.h"
+
 #if defined (__cplusplus)
 	extern "C" {
 #endif
@@ -13,68 +17,52 @@
 #include <avr/io.h>
 #include <inttypes.h>
 #include <avr/interrupt.h>
-#include "config.h"
+
+
 
 #if defined (__cplusplus)
 }
 #endif
 
+typedef struct
+{
+	uint32_t id;
+	uint64_t data;
+	uint8_t length;
+} NetworkVariable;
+
 class SimpleCANClass
 {
-  public:
-	int toto;
-	bool leader;
-	//Initialisation function with node ID
-	void init(uint8_t bitrate);
-	//Election process
-	void election(uint16_t id);
-	//Set synchronisation period
-	void synchronisation();
-	//Define filters according to sensor data IDs (currently work with standard ID)
-	void setFilterOnID(uint16_t *ptr, size_t n_elem);
-	//Define filters according to a range of IDs (currently work with standard ID)
-	//See documentation for the description of each range table
-	void setFilterOnRangeID(int rangeRXF0=0, int rangeRXF1=0, int rangeRXF2=0, int rangeRXF3=0, int rangeRXF4=0, int rangeRXF5=0);
-	void setFilterRXF0(uint16_t id);
-	void setFilterRXF1(uint16_t id);
-	void setFilterRXF2(uint16_t id);
-	void setFilterRXF3(uint16_t id);
-	void setFilterRXF4(uint16_t id);
-	void setFilterRXF5(uint16_t id);
-	/**Debugging*/
-	//Automatically send the message into CAN frames. Split is made if necessary
-	void printString2Can(char []);
-  private:
+	public:
+		//XXX tenter de mettre ces variables en private (au moins VarArray)
+		bool leader;
+		NetworkVariable VarArray[N];
+		//ISR
+		void matchAndRetrieve();
+		//Initialisation function with node ID
+		void init(uint8_t bitrate);
+		//Election process
+		void election(uint32_t id);
+		//Set synchronisation period
+		void synchronisation();
+		//New subscription
+		void keepVariableUpdated(uint32_t id);
+		//Update the variable
+		void setVariable(uint32_t id,uint64_t val);
+		//Get the variable
+		uint64_t getVariable(uint32_t id);		
+
+		/**Debugging*/
+		//Automatically send the message into CAN frames. Split is made if necessary
+		void printString2Can(char []);
+
+	private:
+	
+		
 };
+
+void isrSimpleCAN();
 
 extern SimpleCANClass SimpleCAN;
 
 #endif // SIMPLECAN_H
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
