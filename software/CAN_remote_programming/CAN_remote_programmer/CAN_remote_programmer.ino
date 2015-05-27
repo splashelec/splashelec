@@ -40,11 +40,9 @@ http://www.kreatives-chaos.com/artikel/can-debugger
 
 
 
-#include <CanBib.h>
+#include <Can.h>
 
-CAN can;
-
-prog_uint8_t can_filter[] = 
+const prog_uint8_t can_filter[] = 
 {
 	// Group 0
 	MCP2515_FILTER(0),				// Filter 0
@@ -102,12 +100,16 @@ void term_put_hex(const uint8_t val)
 
 void setup(){
       Serial.begin(115200);
+      while (!Serial) {
+        ; // wait for serial port to connect. Needed for Leonardo only
+      }
+
       // Initialize MCP2515
-      can.mcp2515_init(BITRATE_250_KBPS);
-      can.activateInterrupt();
+      CAN.mcp2515_init(BITRATE_250_KBPS);
+      CAN.activateInterrupt();
       // Load filters and masks
       //can.mcp2515_static_filter(can_filter);
-      can.resetFiltersAndMasks();
+      CAN.resetFiltersAndMasks();
 }
 
 void loop()
@@ -117,7 +119,7 @@ void loop()
     can_t message;
     
     //Get the bootloader response if any
-    if (can.mcp2515_get_message(&message))
+    if (CAN.mcp2515_get_message(&message))
     {
       uint8_t length = message.length;
       
@@ -174,7 +176,7 @@ void loop()
       }
       else {
         buffer[pos] = '\0';
-        can.usbcan_decode_command(buffer, pos); // try to send by CAN
+        CAN.usbcan_decode_command(buffer, pos); // try to send by CAN
         pos = 0;
        }
     }
